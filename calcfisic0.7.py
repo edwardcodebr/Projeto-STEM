@@ -160,7 +160,7 @@ while True:
     print('''
 Bem-vindo ao aplicativo de fisica
 versão: 0.7.24
-criadores: C. Eduardo Correa Queiroz, Carlos Eduardo de Deus e Joaquim Diogenes.
+criadores: C. Eduardo Correa Queiroz (Programador), Carlos Eduardo de Deus (Cálculos) e Joaquim Diogenes (Editor de codigo fonte).
 Escolha sua opção:
 1 - Medir velocidade em KM.
 2 - Medir distancia de um lançamento obliquo em m.

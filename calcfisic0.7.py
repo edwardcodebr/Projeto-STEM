@@ -1,63 +1,82 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import math
+import matplotlib.pyplot as plt
 import sys
-def calcular_trajetoria(v0, theta, gravidade):
-    theta_rad = math.radians(theta)
+import pyttsx3
+import time
 
-    t_total = (2 * v0 * math.sin(theta_rad)) / gravidade
+def tela_carregamento(segundos):
+    for i in range(segundos * 10, 0, -1):
+        sys.stdout.write("\rCarregando... [{}] {}s".format("." * (i % 4), i/10))
+        sys.stdout.flush()
+        time.sleep(0.1)
+    sys.stdout.write("\rCarregado!        \n")
 
-    d = v0 * math.cos(theta_rad) * t_total
+# Defina o tempo de carregamento em segundos
+tempo_carregamento = 3
 
-    h_max = (v0**2 * (math.sin(theta_rad)**2)) / (2 * gravidade)
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)  # Define a velocidade da voz
 
-    return d, h_max   
+def falar(texto, voz='brazil'):
+    voices = engine.getProperty('voices')
+    for v in voices:
+        if 'brazil' in v.id and 'female' in v.id:
+            voz = v.id
+            break
+    engine.setProperty('voice', voz)
+    engine.say(texto)
+    engine.runAndWait()
+    
+def menu():
+    texto = '''
+    bem vindo ao aplicativo de fisica, por favor, entre um valor
+    '''
+    falar(texto)
 
-def plotar_trajetoria(tempos, alturas):
-    plt.plot(tempos, alturas)
-    plt.title('trajetoria do objeto')
-    plt.xlabel('Tempo(s)')
-    plt.ylabel('altura(m)')
-    plt.grid(True)
-    plt.show()
-
-def velocidade_carro (distancia, tempo):
+def velocidade_carro(distancia, tempo):
     velocidade = distancia / tempo
-    print(velocidade," M/S.")
-    return distancia, tempo
+    print(f"A velocidade do carro é de {velocidade:.2f} km/h.")
+    velocidadefalar = f'a velocidade do carro é de {velocidade} quilometros por hora'
+    falar(velocidadefalar)
 
-def lei_ohl (volt, amperes):
+def calcular_trajetoria(v0, theta, gravidade):
+    distancia = (v0 ** 2 * np.sin(2 * np.radians(theta))) / gravidade
+    altura_maxima = (v0 ** 2 * (np.sin(np.radians(theta))) ** 2) / (2 * gravidade)
+    return distancia, altura_maxima
+
+def lei_ohl(volt, amperes):
     resistencia = volt / amperes
+    print(f"A resistência é de {resistencia:.2f} Ohms.")
+    texto =f'A resistência é de {resistencia:.2f} Ohms'
+    falar(texto)
 
-    print(resistencia, " ohms.")
-
-    return resistencia
-
-def conversao_f (celsius1):
-    fhn = (9/5 * celsius1 + 32)
-
-    print(fhn, " F°.")
-    return celsius1
-
-def conversao_k (celsius2):
+def conversao_f(celsius1):
+    fahrenheit = (celsius1 * 9/5) + 32
+    print(f"A temperatura em Fahrenheit é de {fahrenheit:.2f} °F.")
+    texto = f'f"A temperatura em Fahrenheit é de {fahrenheit:.2f}'
+    falar(texto)
+    
+def conversao_k(celsius2):
     kelvin = celsius2 + 273.15
-    print(kelvin, " K°.")
+    print(f"A temperatura em Kelvin é de {kelvin:.2f} K.")
+    texto = f"A temperatura em Kelvin é de {kelvin:.2f}"
 
-def conversao_celsius_fahrenheit (fh):
-    celsiusfinal1 = 5/9*(fh - 32)
-    print(celsiusfinal1, " C°.")
-
-def conversao_celsius_kelvin (klv):
-    celsiusfinal2 = klv - 273.15
-    print(celsiusfinal2, " C°.")
+def conversao_celsius_fahrenheit(fh):
+    celsius = (fh - 32) * 5/9
+    print(f"A temperatura em Celsius é de {celsius:.2f} °C.")
+    texto = f"A temperatura em Celsius é de {celsius:.2f}"
+def conversao_celsius_kelvin(klv):
+    celsius = klv - 273.15
+    print(f"A temperatura em Celsius é de {celsius:.2f} °C.")
+    texto = f"A temperatura em Celsius é de {celsius:.2f}"
+    falar(texto)
 
 def calcular_energia_cinetica(massa, velocidade):
-    # Calcula a energia cinética usando a fórmula EC = 1/2 * m * v^2
-    energia_cinetica = 0.5 * massa * (velocidade ** 2)
-    return energia_cinetica
+    energia = 0.5 * massa * velocidade ** 2
+    return energia
 
 def calcular_forca_atrito(coeficiente_atrito, forca_normal):
-    # Calcula a força de atrito usando a fórmula Fₐ = μ * N
     forca_atrito = coeficiente_atrito * forca_normal
     return forca_atrito
 
@@ -66,58 +85,26 @@ def calc_forc(massa, aceleracao):
     return forca
 
 def calcular_velocidade_onda(frequencia, comprimento_onda):
-    # Calcula a velocidade da onda usando a fórmula v = f * λ
-    velocidade = frequencia * comprimento_onda
-    return velocidade
-def onda_senoidal(x, t, A=1, k=2, omega=3, phi=0):
-    """
-    Calcula a onda senoidal em um ponto (x, t) com os parâmetros dados.
+    velocidade_onda = frequencia * comprimento_onda
+    return velocidade_onda
 
-    Args:
-    x (float): Posição na direção da propagação da onda.
-    t (float): Tempo.
-    A (float, optional): Amplitude máxima da onda. Default é 1.
-    k (float, optional): Número de onda. Default é 2.
-    omega (float, optional): Frequência angular. Default é 3.
-    phi (float, optional): Fase inicial da onda. Default é 0.
+def onda_senoidal(x_grid, t_grid, ao, ko, omegao, phio):
+    senoidal_wave = ao * np.sin(ko * x_grid - omegao * t_grid + phio)
+    return senoidal_wave
 
-    Returns:
-    float: Amplitude da onda no ponto (x, t).
-    """
-    return A * np.sin(k * x - omega * t + phi)
-def onda_eletromagnetica_1d(x, t, A=1, lambda_=1, omega=2*np.pi, phi=0):
-    """
-    Calcula a amplitude da onda eletromagnética em uma dimensão.
-
-    Args:
-    x (float): Posição na direção da propagação da onda.
-    t (float): Tempo.
-    A (float, optional): Amplitude máxima da onda. Default é 1.
-    lambda_ (float, optional): Comprimento de onda. Default é 1.
-    omega (float, optional): Frequência angular. Default é 2*pi.
-    phi (float, optional): Fase inicial da onda. Default é 0.
-
-    Returns:
-    float: Amplitude da onda no ponto (x, t).
-    """
-    k = 2 * np.pi / lambda_  # Número de onda
-    Ex = A * np.sin(k * x - omega * t + phi)  # Campo elétrico
-    By = A * np.sin(k * x - omega * t + phi)  # Campo magnético
+def onda_eletromagnetica_1d(x_grid, t_grid, A, lambda_, omega, phi):
+    Ex = A * np.cos(omega * t_grid - (2 * np.pi / lambda_) * x_grid + phi)
+    By = A * np.cos(omega * t_grid - (2 * np.pi / lambda_) * x_grid + phi)
     return Ex, By
-def forca_gravitacional(m1, m2, r, G=6.67430e-11):
-    """
-    Calcula a força gravitacional entre dois corpos.
 
-    Args:
-    m1 (float): Massa do primeiro corpo em kg.
-    m2 (float): Massa do segundo corpo em kg.
-    r (float): Distância entre os centros dos corpos em metros.
-    G (float, optional): Constante gravitacional universal em N*m²/kg². Default é 6.67430e-11.
+def forca(massa, aceleracao):
+    forca = massa * aceleracao
+    return forca
 
-    Returns:
-    float: Força gravitacional entre os corpos em Newtons.
-    """
-    return G * abs(m1 * m2) / r**2
+def calcular_gravidade(m1, m2, distancia):
+    gravidade = 6.674 * (10 ** -11) * ((m1 * m2) / distancia ** 2)
+    return gravidade
+
 def equacao_bernoulli(P, rho, v, h, g=9.81):
     """
     Calcula a constante da equação de Bernoulli.
@@ -134,20 +121,6 @@ def equacao_bernoulli(P, rho, v, h, g=9.81):
     """
     return P + 0.5 * rho * v**2 + rho * g * h
 
-def eletricidade(r, i):
-    "u flaot, em volts, resistenc float ohml, corrente em amprere float"
-    u = r*i
-    return u
-
-def capacitor(cargae, difpot):
-    "dada uma carga eletrica em float divido pela diferença potencial em float é dada a capacitância"
-    capacitancia = cargae*difpot
-    return capacitancia
-
-def gravidade(g, m, r):
-    gravity = g*m/r**2
-    return gravity
-
 def dilatlinear(compriin, material, tempod):
     compri = compriin*material*(tempod)
     return compri
@@ -156,52 +129,110 @@ def dilatvol(volin, material1, tempod1):
     dilvol = volin * material1 * tempod1
     return dilvol
 
+def explicar_gravidade():
+    print("Aqui você encontrará uma explicação sobre a gravidade da Terra.")
+
+def explicar_pi():
+    print("Aqui você encontrará uma explicação sobre o valor de PI na física.")
+
+def forca_gravitacional(m1, m2, r, G=6.67430e-11):
+    """
+    Calcula a força gravitacional entre dois corpos.
+
+    Args:
+    m1 (float): Massa do primeiro corpo em kg.
+    m2 (float): Massa do segundo corpo em kg.
+    r (float): Distância entre os centros dos corpos em metros.
+    G (float, optional): Constante gravitacional universal em N*m²/kg². Default é 6.67430e-11.
+
+    Returns:
+    float: Força gravitacional entre os corpos em Newtons.
+    """
+    return G * abs(m1 * m2) / r**2
+def eletricidade(r, i):
+    "u flaot, em volts, resistenc float ohml, corrente em amprere float"
+    u = r*i
+    return u
+def capacitor(cargae, difpot):
+    "dada uma carga eletrica em float divido pela diferença potencial em float é dada a capacitância"
+    capacitancia = cargae*difpot
+    return capacitancia
+def gravidade(g, m, r):
+    gravity = g*m/r**2
+    return gravity
+# Exemplo de uso:
+tela_carregamento(tempo_carregamento)
 while True:
     print('''
-Bem-vindo ao aplicativo de fisica
-versão: 0.7.24
-criadores: C. Eduardo Correa Queiroz (Programador), Carlos Eduardo de Deus e Joaquim Diogenes.
-Escolha sua opção:
-1 - Medir velocidade em KM.
-2 - Medir distancia de um lançamento obliquo em m.
-3 - Medir resistencia.
-4 - Transformar celsius para Fahrenheit.
-5 - Transformar celsius para Kelvin.
-6 - Transformar Fahrenheit para celsius.
-7 - Transformar Kelvin para celsius.
-8 - Calcular energia cinética.
-9 - Calcular força de atrito.
-10 - Calcular força.
-11 - calcular velocidade da onda.
-12 - calcular onda senodial.
-13 - calcular onda eletromagnetica.
-14 - mostrar força gravitacional
-15 - equação de Bernoulli.
-16 - medir eletricidade.
-17 - medir capacitor.
-18 - ver explicação do calculo da gravidade da terra.
-19 - ver explicação do valor de PI na física.
-20 - medir dilatação linear.
-21 - medir dilatação volumetrica.
-22 - lista de materiais para dilatação em notação cientifica.
-23 - Materiais para engenharia(densidade, modulo, resistencia e coeficiente).
-24 - Sair.''')
-    escolha = int(input())
+    Bem-vindo ao aplicativo de física
+    Criadores: C. Eduardo Correa Queiroz (Programador), Carlos Eduardo de Deus e Joaquim Diogenes.
+    Versão: 0.7.24
+    Escolha sua opção:
+    1 - Medir velocidade em KM.
+    2 - Medir distância de um lançamento oblíquo em m.
+    3 - Medir resistência.
+    4 - Transformar celsius para Fahrenheit.
+    5 - Transformar celsius para Kelvin.
+    6 - Transformar Fahrenheit para celsius.
+    7 - Transformar Kelvin para celsius.
+    8 - Calcular energia cinética.
+    9 - Calcular força de atrito.
+    10 - Calcular força.
+    11 - Calcular velocidade da onda.
+    12 - Calcular onda senoidal.
+    13 - Calcular onda eletromagnética.
+    14 - Mostrar força gravitacional.
+    15 - Equação de Bernoulli.
+    16 - Medir eletricidade.
+    17 - Medir capacitor.
+    18 - Ver explicação do cálculo da gravidade da Terra.
+    19 - Ver explicação do valor de PI na física.
+    20 - Medir dilatação linear.
+    21 - Medir dilatação volumétrica.
+    22 - Lista de materiais para dilatação em notação científica.
+    23 - Materiais para engenharia (densidade, módulo, resistência e coeficiente).
+    24 - informações do sistema.
+    25 - Sair.
+    ''')
+    menu()
+    escolha = int(input("Escolha uma opção: "))
     match escolha:
         case 1:
+            def distanciafalar():
+                texto = 'bote o valor da distancia'
+                falar(texto)
+            distanciafalar()
             distancia = float(input("Corrida do carro em quilometros(0.00KM):"))
+            def tempofalar():
+                texto = 'bote o valor do tempo'
+                falar(texto)
+            tempofalar()
             tempo = float(input("Tempo percorrido em horas(acrescente o minutos em 0.00):"))
             velocidade_carro(distancia, tempo)
+            
         case 2:
+            texto = 'Digite o lançamento em graus'
+            falar(texto)
             theta = float(input("Digite o ângulo de lançamento em graus (em float: 0.00):"))
+            texto = 'digite a velociade inicial'
+            falar(texto)
             v0 = float(input("Digite a velocidade inicial em m/s (metros por segundo: 0.00):"))
+            
             gravidade = 9.81
             distancia, altura_maxima = calcular_trajetoria(v0, theta, gravidade)
             print(f"Distância total: {distancia:.2f} metros") 
             print(f"Altura máxima: {altura_maxima:.2f} Metros")
+            texto = f'Distância total: {distancia:.2f} metros'
+            texto1 = f"Altura máxima: {altura_maxima:.2f} Metros"
+            falar(texto)
+            falar(texto1)
     
         case 3:
+            texto = 'digite a voltagem'
+            falar(texto)
             volt = float(input("Voltagem:"))
+            texto = 'digite a corrente'
+            falar(texto)
             amperes = float(input("Corrente em amperes:"))
             lei_ohl(volt, amperes)
         case 4:
@@ -217,7 +248,11 @@ Escolha sua opção:
             klv = float(input("temperatura (em kelvin):"))
             conversao_celsius_kelvin(klv)
         case 8:
+            texto = "Digite a massa do objeto"
+            falar(texto)
             massa = float(input("Digite a massa do objeto em kg (em float: 0.00): "))
+            texto = "digite a velocidade do objeto"
+            falar(texto)
             velocidade = float(input("Digite a velocidade do objeto em m/s (em float: 0.00): "))
 
             # Calcula a energia cinética
@@ -225,65 +260,120 @@ Escolha sua opção:
 
            # Exibe o resultado
             print(f"A energia cinética do objeto é: {energia:.2f} joules")
+            texto = f"A energia cinética do objeto é: {energia:.2f} joules"
+            falar(texto)
         case 9:
+            texto = "digite o coeficiente de atrito"
+            falar(texto)
             coeficiente_atrito = float(input("digite o coeficiente de atrito (em float: 0.00):"))
+            texto = "digite a força normal em newtons"
+            falar(texto)
             forca_normal = float(input("Digite a força normal em Newtons(em float: 0.00):"))
             
             forca_atrito = calcular_forca_atrito(coeficiente_atrito, forca_normal)
             
             print(f"A força de atrito é: {forca_atrito:.2f} Newtons.") 
+            texto = f"A força de atrito é: {forca_atrito:.2f} Newtons."
+            falar(texto)
         case 10:
+            texto = "digite a massa do objeto em quilogramas"
+            falar(texto)
             massa = float(input("Digite a massa do objeto em quilogramas(em float: 0.00):"))
+            texto = "digite a aceleração em metro quadrado"
+            falar(texto)
             aceleracao = float(input("digite a aceleração em metros por segundo ao quadrado(em float: 0.00)"))
             
             forca = calc_forc(massa, aceleracao)
             print(f"A força resultante é: {forca:.2f} Newtons")
+            texto = f"A força resultante é: {forca:.2f} Newtons"
+            falar(texto)
         case 11:
+            texto = "digite a frequencia"
+            falar(texto)
             frequencia = float(input("digite a frquencia em heartz (Hz):"))
+            texto = "digite o comprimento de onda"
+            falar(texto)
             comprimento_onda = float(input("Digite o comprimento de onda em metros(em float: 0.00):"))
             
             velocidade_onda = calcular_velocidade_onda(frequencia, comprimento_onda)
             print(f"A velocidade da onda é: {velocidade_onda:.2f} metros por segundo.")
+            texto = f"A velocidade da onda é: {velocidade_onda:.2f} metros por segundo"
+            falar(texto)
         case 12:
-            x = np.linspace(0, 4*np.pi, 100)  # De 0 a 4*pi    
-            t = np.linspace(0, 4*np.pi, 100)  # De 0 a 4*pi
+            texto = "digite a posição X"
+            x = float(input("Digite a posição (x): "))
+            texto = "digite o tempo"
+            t = float(input("Digite o tempo (t): "))
+            texto = "digite a amplitude"
+            ao = float(input("Digite a amplitude máxima (ao) [default 1]: ") or 1)
+            texto = "digite a onda"
+            ko = float(input("Digite o número de onda (ko) [default 2]: ") or 2)
+            texto = "digite a frequencia angular"
+            omegao = float(input("Digite a frequência angular (omegao) [default 3]: ") or 3)
+            texto = "e por ultimo, digite a fase inicial"
+            phio = float(input("Digite a fase inicial (phio) [default 0]: ") or 0)
+            texto = "veja o resultado"
+            falar(texto)
+            # Criando uma malha de x e t
+            x_vals = np.linspace(0, 10, 100)  # Define os valores de x para a malha
+            t_vals = np.linspace(0, 10, 100)  # Define os valores de t para a malha
+            x_grid, t_grid = np.meshgrid(x_vals, t_vals)
 
-# Criando uma malha de x e t
-            x, t = np.meshgrid(x, t)
+            # Calculando a onda senoidal em função de x e t
+            senoidal_wave = onda_senoidal(x_grid, t_grid, ao, ko, omegao, phio)
 
-# Calculando a onda senoidal
-            y = onda_senoidal(x, t)
-
-            # Plotando a onda
+            # Plotando a onda senoidal
             plt.figure(figsize=(10, 6))
-            plt.imshow(y, cmap='viridis', extent=[0, 4*np.pi, 0, 4*np.pi], aspect='auto')
-            plt.colorbar(label='Amplitude')
-            plt.title('Onda Senoidal')
-            plt.xlabel('x')
-            plt.ylabel('t')
+            plt.imshow(senoidal_wave, cmap='viridis', extent=[0, 10, 0, 10], aspect='auto', origin='lower')
+            plt.colorbar(label='Amplitude da Onda')
+            plt.title('Simulação de Onda Senoidal')
+            plt.xlabel('Espaço')
+            plt.ylabel('Tempo')
             plt.show()
         case 13:
-            x = np.linspace(0, 10, 1000)  # Espaço
-            t = np.linspace(0, 10, 1000)  # Tempo
+            texto = "digite a posição X"
+            falar(texto)
+            x = float(input("Digite a posição (x): "))
+            texto = "digite o tempo"
+            falar(texto)
+            t = float(input("Digite o tempo (t): "))
+            texto = "digite a amplitude"
+            falar(texto)
+            A = float(input("Digite a amplitude máxima (A) [default 1]: ") or 1)
+            texto = "digite o comprimento de onda"
+            falar(texto)
+            lambda_ = float(input("Digite o comprimento de onda (lambda) [default 1]: ") or 1)
+            texto = "digite a frequência"
+            falar(texto)
+            omega = float(input("Digite a frequência angular (omega) [default 2*pi]: ") or 2 * np.pi)
+            texto = "digite a fase inicial"
+            falar(texto)
+            phi = float(input("Digite a fase inicial (phi) [default 0]: ") or 0)
 
-# Criando uma malha de x e t
-            x, t = np.meshgrid(x, t)
+            texto = "veja seu resultado de ondas eletromagnetica"
+            falar(texto)
+            
+            # Criando uma malha de x e t
+            x_vals = np.linspace(0, 10, 100)  # Define os valores de x para a malha
+            t_vals = np.linspace(0, 10, 100)  # Define os valores de t para a malha
+            x_grid, t_grid = np.meshgrid(x_vals, t_vals)
 
-# Calculando o campo elétrico e magnético em função de x e t
-            Ex, By = onda_eletromagnetica_1d(x, t)
+            # Calculando o campo elétrico e magnético em função de x e t
+            Ex, By = onda_eletromagnetica_1d(x_grid, t_grid, A, lambda_, omega, phi)
 
-# Plotando o campo elétrico
+            # Plotando o campo elétrico
             plt.figure(figsize=(12, 6))
+
             plt.subplot(2, 1, 1)
-            plt.imshow(Ex, cmap='viridis', extent=[0, 10, 0, 10], aspect='auto')
+            plt.imshow(Ex, cmap='viridis', extent=[0, 10, 0, 10], aspect='auto', origin='lower')
             plt.colorbar(label='Campo Elétrico (Ex)')
             plt.title('Simulação de Onda Eletromagnética - Campo Elétrico')
             plt.xlabel('Espaço')
             plt.ylabel('Tempo')
 
-# Plotando o campo magnético
+            # Plotando o campo magnético
             plt.subplot(2, 1, 2)
-            plt.imshow(By, cmap='viridis', extent=[0, 10, 0, 10], aspect='auto')
+            plt.imshow(By, cmap='viridis', extent=[0, 10, 0, 10], aspect='auto', origin='lower')
             plt.colorbar(label='Campo Magnético (By)')
             plt.title('Simulação de Onda Eletromagnética - Campo Magnético')
             plt.xlabel('Espaço')
@@ -298,32 +388,57 @@ Escolha sua opção:
 
             forca = forca_gravitacional(m1, m2, r)
             print(f"A força gravitacional entre a Terra e a Lua é {forca} Newtons.")
+            texto = f"A força gravitacional entre a Terra e a Lua é {forca} Newtons"
+            falar(texto)
         case 15:
+            texto = "digite a pressão do fluido em pascal"
+            falar(texto)
             P = float(input("Digite a pressão do fluido em pascals (Pa): "))
+            texto = "digite a densidade"
+            falar(texto)
             rho = float(input("Digite a densidade do fluido em quilogramas por metro cúbico (kg/m³): "))
+            texto = "digite a velocidade do fluido"
+            falar(texto)
             v = float(input("Digite a velocidade do fluido em metros por segundo (m/s): "))
+            texto = "digite a altura de referência"
+            falar(texto)
             h = float(input("Digite a altura em metros em relação a uma referência escolhida: "))
+            texto = "digite a aceleração"
+            falar(texto)
             g = float(input("Digite a aceleração devido à gravidade em metros por segundo ao quadrado (m/s²): "))
 
 # Cálculo da constante de Bernoulli 
             constante_bernoulli = equacao_bernoulli(P, rho, v, h, g)
-
 # Output
             print(f"A constante de Bernoulli é: {constante_bernoulli} Pa")
+            texto = f"sua constante é de {constante_bernoulli}"
+            falar(texto)
         case 16:
+            texto = 'insira a resisência'
+            falar(texto)
             print("Insira a resistência(em float):")
             r = float(input())
+            texto = 'insira a corrente em amperes'
+            falar(texto)
             print("insira a corrente em amperes")
             i = float(input())
             u = eletricidade(r, i)
             print(f"{u} Volts")
+            texto = f"seu resultado deu {u} Volts"
+            falar(texto)
         case 17:
+            texto = 'insira a carga elétrica'
+            falar(texto)
             print("Insira a carga elétrica(em float):")
             cargae = float(input())
-            print("insira a diferença potencial(em float)")
+            texto = "insira a diferença potêncial"
+            texto(falar)
+            print("insira a diferença potêncial(em float)")
             difpot = float(input())
             capacitancia = capacitor(cargae, difpot)
             print(f"{capacitancia:.2f} Jaules")
+            texto = f"seu resultado deu {capacitancia:.2f} Jaules"
+            falar(texto)
         case 18:
             print('''A gravidade da terra, denotada por "g" na física,
             é a aceleração que um objeto experimenta devido a atração gravitacional da terra.
@@ -340,10 +455,15 @@ Escolha sua opção:
             r = 6.371*10**6
             gravity = gravidade(g, m, r)
             print(f"Gravidade da terra igual {gravity:.3}")
+            texto = f"A gravidade da terra, denotada por g na física, é a aceleração que um objeto experimenta devido a atração gravitacional da terra. O valor padrão da gravidade ao nível do mar é aproximadamente 9,81 m/s**2. Este valor pode ser calculado utilizando a fórmula da lei da Gravitação universal de Newton. g igual a GM/R ao quadrado Onde: G é a constante gravitacional(6,674x10**-11) M é a massa da terra(5,972x10**24)R é o raio da terra(6,371x10**6) Gravidade da terra igual {gravity:.3}"
+            falar(texto)
             print("-- Bônus --")
             print('''A gravidade igual a 10 m/s**2, é usado na engenharia em seus cálculos no ensino por:
             Simplicidade nos cálculos, aproximação suficiente precisa, facilitação no ensino e margem de segurança.
             Portanto, o uso de 10m/s**2 é uma prática comum devido à conveniência e à pequena margem de erro introduzida pela aproximação.''')
+            
+            texto = f'bônus A gravidade igual a 10 m/s**2, é usado na engenharia em seus cálculos no ensino por: Simplicidade nos cálculos, aproximação suficiente precisa, facilitação no ensino e margem de segurança. Portanto, o uso de 10 metros ao quadrado é uma prática comum devido à conveniência e à pequena margem de erro introduzida pela aproximação.'
+            falar(texto)
         case 19:
             print("A constante matemática (pi):")
             print('''Tem relação com uma circuferência de um circulo e seu diâmetro,
@@ -357,9 +477,16 @@ Escolha sua opção:
             um grande recipiente circular no templo de Salomão. O versículo afirma que o diâmetro do mar era de 10 côvados e com perímetro de 30 côvados,
             o que implicaria um valor de PI igual a 3. Essa simplificação pode ter sido feita por conveniência prática ou por razões simbólicas,
             e não reflete a precisão matemática atual de PI.''')
+            
+            texto = f'A constante matemática (pi) Tem relação com uma circuferência de um circulo e seu diâmetro, desempenha um papel fundamental em muitos campos da física. Sua história na física está ligada com o desenvolvimento da mátematica e da ciência em geral. Hoje, PI é fundamental em muitos campos da física, incluindo mecânica, termodinâmica, eletitrismo e magnetismo. É amplamente utilizado em cálculos e formulações teóricas. Bônus Refêrencia na biblia. Em 1 Reis 7:23, onde é descrita a construção de um mar de fundição, um grande recipiente circular no templo de Salomão. O versículo afirma que o diâmetro do mar era de 10 côvados e com perímetro de 30 côvados, o que implicaria um valor de PI igual a 3. Essa simplificação pode ter sido feita por conveniência prática ou por razões simbólicas, e não reflete a precisão matemática atual de PI.'
+            falar(texto)
         case 20:
+            texto = 'digite o comprimento inicial'
+            falar(texto)
             print("digite o comprimento inicial(em float 0.00).")
             compriin = float(input())
+            texto = 'digite o material'
+            falar(texto)
             print("digite o material para dilatar (em inteiro 0)")
             print('''1 - aluminio
 2 - cobre
@@ -381,18 +508,28 @@ Escolha sua opção:
                     aco = 1.2*pow(10,-5)
                     material = aco
                 case 5:
-                    cimento = 0.7*pow(10,-5)
+                    cimento = 0.7*pow(10,-6)
                     material = cimento
+            texto = 'digite a temperatura final'
+            falar(texto)
             print("digite o temperatura final(em float 0.00):")
             tempf = float(input())
+            texto = 'digite a temperatura inicial'
+            falar(texto)
             print("digite o temperatura inicial(em float 0.00):")
             tempin = float(input())
             tempod = tempf - tempin
             compri = dilatlinear(compriin, material, tempod)
             print(f"{compri} Metros")
+            texto = f"{compri} Metros"
+            falar(texto)
         case 21:
+            texto = 'digite o volume cubico inicial'
+            falar(texto)
             print("Digite o volume cubico inicial (em float 0.00)")
             volin = float(input())
+            texto = 'digite o material'
+            falar(texto)
             print("digite o material para dilatar (em inteiro 0)")
             print('''1 - agua
 2 - gelo
@@ -430,14 +567,20 @@ Escolha sua opção:
                 case 7:
                     vidroprex = 9.6*pow(10,-6)
                     material1 = vidroprex
-                    
+            
+            texto = 'digite a temperatura final'
+            falar(texto)
             print("digite o temperatura final(em float 0.00):")
             tempf1 = float(input())
+            texto = 'digite a temperatura inicial'
+            falar(texto)
             print("digite o temperatura inicial(em float 0.00):")
             tempin1 = float(input())
             tempod1 = tempf1 - tempin1
             dilvol = dilatvol(volin, material1, tempod1)
             print(f"{dilvol} Metros cubicos.")
+            texto = f"{dilvol} Metros cubicos."
+            falar(texto)
         case 22:
             print('''A dilatação térmica é um fenômeno físico que descreve a variação das dimensões de um corpo devido à variação de temperatura. Os principais materiais que apresentam dilatação térmica são os sólidos, líquidos e gases. Aqui estão alguns exemplos de materiais e seus coeficientes de dilatação linear em notação científica:
 
@@ -631,6 +774,15 @@ Ferro:
 Bronze:
 
     Densidade: ~8300 kg/m³''')
+
         case 24:
+            print("Calcfisic IA, versão 0.8")
+            print("programado por Carlos Eduardo Corrêa Queiroz e auxiliado por Eduardo de Deus e Joaquim Diógenes e supervisionado pelo orientador Edvam Nunes")
+            print('um projeto de pesquisa e desenvolvimento da "science tecnology engineering mathematic" da Samsung Amazonas da Universidade do Estado do Amazonas.')
+            texto = "Calcfisic IA, versão 0.8, programado por Carlos Eduardo Corrêa Queiroz e auxiliado por Eduardo de Deus e Joaquim Diógenes e supervisionado pelo orientador Edvam Nunes, um projeto de pesquisa e desenvolvimento da science tecnology engineering mathematic da Samsung Amazonas da Universidade do Estado do Amazonas."
+            falar(texto)
+        case 25:
+            texto = 'desligando o sistema, obrigado por usar e volte sempre'
+            falar(texto)
             print("DESLIGANDO")
             sys.exit()
